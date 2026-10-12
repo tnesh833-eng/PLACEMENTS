@@ -355,6 +355,14 @@ const API_KEYS = {
     zai: ''
 };
 
+const API_BASE = (window.location.protocol === 'file:' ||
+    ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
+        window.location.port !== '3000'))
+    ? 'http://127.0.0.1:3000/api'
+    : '/api';
+
+const apiUrl = (path) => `${API_BASE}${path}`;
+
 const GEMINI_API_KEY = API_KEYS.gemini;
 const SERPAPI_KEY = '';
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
@@ -904,7 +912,7 @@ function initThreeJsAvatar() {
 
             } else {
                 const authToken = localStorage.getItem('rh_auth_token') || '';
-                const backendRes = await fetch('/api/ai/global-chat', {
+                const backendRes = await fetch(apiUrl('/ai/global-chat'), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -2967,7 +2975,7 @@ window.loadSettingsNotifications = async function () {
             container.innerHTML = "<span style='font-size:0.78rem;color:var(--text-muted);'>Login to see notifications.</span>";
             return;
         }
-        const r = await fetch("/api/notifications", { headers: { Authorization: `Bearer ${token}` } });
+        const r = await fetch(apiUrl("/notifications"), { headers: { Authorization: `Bearer ${token}` } });
         const data = await r.json();
         const notifs = (data.notifications || []).slice(0, 5);
         if (!notifs.length) {
@@ -2995,7 +3003,7 @@ async function checkAdminForSettings() {
     try {
         const token = localStorage.getItem("rh_auth_token");
         if (!token) return;
-        const r = await fetch("/api/auth/is-admin", { headers: { Authorization: `Bearer ${token}` } });
+        const r = await fetch(apiUrl("/auth/is-admin"), { headers: { Authorization: `Bearer ${token}` } });
         if (r.ok) {
             adminSection.style.display = "block";
         } else {
@@ -3200,7 +3208,7 @@ window.generatePasswordOTP = async function () {
     }
     if (btn) { btn.disabled = true; btn.textContent = " Sending"; }
     try {
-        const r = await fetch("/api/auth/login", {
+        const r = await fetch(apiUrl("/auth/login"), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: user.email })
@@ -3240,7 +3248,7 @@ window.setOTPasPassword = async function () {
     if (msgEl) { msgEl.style.display = "block"; msgEl.style.background = "rgba(99,102,241,0.08)"; msgEl.style.color = "var(--brand-primary)"; msgEl.textContent = " Setting password"; }
 
     try {
-        const r = await fetch("/api/auth/otp-to-password", {
+        const r = await fetch(apiUrl("/auth/otp-to-password"), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: user.email, otp })
@@ -7006,7 +7014,7 @@ async function requestNetworkCall() {
     if (!confirmed) return;
 
     try {
-        await fetch("/api/freelance/chat", {
+        await fetch(apiUrl("/freelance/chat"), {
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
             body: JSON.stringify({ message: " [CALL REQUEST] I would like to schedule a network call to discuss a project." })
@@ -7261,7 +7269,7 @@ async function setupGrowUpQuiz() {
     try {
         const promptText = `Act as an AI mentor. Generate a single multiple-choice assessment question for "${topic}" at Stage ${stage}. Format output as HTML. Include a <div> with the question (use stark white text #ffffff), and 3 <label> radio button options (use #f8fafc). Do not include markdown code block backticks.`;
 
-        const res = await fetch('/api/ai/global-chat', {
+        const res = await fetch(apiUrl('/ai/global-chat'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt: promptText })
@@ -8798,7 +8806,7 @@ async function sendAiMessage() {
             // Default: Route through our secure backend (Gemini via server-side key)
             engineLabel = 'Gemini AI';
             const authToken = localStorage.getItem('rh_auth_token') || '';
-            const backendRes = await fetch('/api/ai/global-chat', {
+            const backendRes = await fetch(apiUrl('/ai/global-chat'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
